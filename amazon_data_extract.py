@@ -22,12 +22,14 @@ def extract_href_values(url):
 url1 = 'https://www.amazon.in/s?rh=n%3A84514739031&fs=true&ref=lp_84514739031_sar'
 url2 = 'https://www.amazon.in/s?i=kitchen&rh=n%3A84514739031&fs=true&page=2&qid=1686482966&ref=sr_pg_2'
 
+# Define the headers
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
     'Accept-Language': 'en-US,en;q=0.9',
 }
 
-# General
+# Create lists to store the extracted data
+# lists for General details
 href_values = []
 product_urls = []
 product_titles = []
@@ -35,7 +37,7 @@ wholeprice = []
 mrps = []
 discount_percentages = []
 
-# From product details
+# lists for product details
 best_sellers_ranks = []
 date_first_availables = []
 manufacturers = []
@@ -48,7 +50,7 @@ item_dimensions = []
 net_qualitys = []
 generic_names = []
 
-# From technical details
+# lists for  technical details
 brands = []
 models = []
 capacitys = []
@@ -75,6 +77,7 @@ extract_href_values(url1)
 # Extract href values from the second URL
 extract_href_values(url2)
 
+#Scraping data from Iduvidual product URl's
 for product in href_values:
     product_url = "https://www.amazon.in" + product
     product_response = requests.get(product_url, headers=headers, verify=False, timeout=30)
@@ -98,7 +101,7 @@ for product in href_values:
     product_urls.append(product_url)
     discount_percentages.append(offer_percentage.text.strip() if offer_percentage else None )
 
-
+    #Product details table
     table = product_soup.find('table', id='productDetails_detailBullets_sections1')
     if table:
         rows = table.find_all('tr')
@@ -121,7 +124,7 @@ for product in href_values:
         net_quality = data.get('Net Quantity', 'null')
         generic_name = data.get('Generic Name', 'null')
 
-        # Append values
+        # Append product details to the lists
         best_sellers_ranks.append(best_sellers_rank)
         date_first_availables.append(date_first_available)
         packers.append(packer)
@@ -133,7 +136,7 @@ for product in href_values:
         net_qualitys.append(net_quality)
         generic_names.append(generic_name)
 
-        # Product technical Specs
+        # Product technical Specs table
         table = product_soup.find('table', id='productDetails_techSpec_section_1')
         rows = table.find_all('tr')
 
@@ -163,7 +166,7 @@ for product in href_values:
         batteries_required = details.get('Batteries Required', 'null')
         country_of_origin = details.get('Country of Origin', 'null')
 
-        # Append values
+        # Append values to the lists
         brands.append(brand)
         models.append(model)
         capacitys.append(capacity)
