@@ -208,4 +208,4 @@ data = {'URL': producturls,
 df = pd.DataFrame(data)
 
 # Export the DataFrame to an CSV file
-df.to_csv('microwave_flipkart_16_Juneee.csv', index=False)
+df.to_csv('microwave_flipkart.csv', index=False)
