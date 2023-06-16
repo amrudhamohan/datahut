@@ -9,13 +9,13 @@ def extract_href_values(url):
     # Create a BeautifulSoup object from the response text
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    divs = soup.find_all('div', class_=lambda value: value and 'sg-col-4-of-24' in value and 'sg-col-4-of-12' in value)
+    divs = soup.find_all('div', class_=lambda value: value and 'sg-col-4-of-24' in value and 'sg-col-4-of-12' in value and 's-result-item' in value)
 
     for div in divs:
         link = div.find('a', class_='a-link-normal s-no-outline')
         if link:
             href = link['href']
-            if 'wrong' not in href:
+            if 'sspa' not in href:
                 href_values.append(href)
 
 # Define the URLs
@@ -71,10 +71,10 @@ batteries_requireds = []
 manufacturers = []
 country_of_origins = []
 
-# Extract href values from the first URL
+# Extract href values from the first page
 extract_href_values(url1)
 
-# Extract href values from the second URL
+# Extract href values from the second page
 extract_href_values(url2)
 
 #Scraping data from Iduvidual product URl's
@@ -227,4 +227,4 @@ data = {
 df = pd.DataFrame(data)
 
 # Save the DataFrame to an Excel file
-df.to_excel('amazon_data_last.xlsx', index=False)
+df.to_csv('amazon_data_last.csv', index=False)
