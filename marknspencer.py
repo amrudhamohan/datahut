@@ -5,13 +5,27 @@ import gzip
 import zlib
 import re
 import os
+from requests.exceptions import RequestException
 
 
-def extract_href_values(url, headers):
+def extract_href_values(url, headers, max_retries=3):
+    for _ in range(max_retries):
+        try:
+            # Send a GET request to the URL with the headers
+            response = requests.get(url, headers=headers, timeout=30)
+            response.raise_for_status()  # Raise an exception for 4xx and 5xx status codes
+            soup = BeautifulSoup(response.text, 'html.parser')
+            return soup
+        except RequestException as e:
+            print(f"An error occurred: {e}")
+            print("Retrying...")
+    return None  # Return None if all retries fail
+
+#def extract_href_values(url, headers):
     # Send a GET request to the URL with the headers
-    response = requests.get(url, headers=headers, timeout=30)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    return soup
+    #response = requests.get(url, headers=headers, timeout=30)
+    #soup = BeautifulSoup(response.text, 'html.parser')
+    #return soup
 
 def extract_number_of_pages(soup):
     pagination_span = soup.find('span', class_='css-82gmvi e1ytuwls1')
@@ -41,9 +55,12 @@ def extract_product_url(pageUrls):
     return productUrl
 
 def fetch_product_details(productUrl):
+    x = 1
     for pages in productUrl:
         soup =  extract_href_values (pages, headers)
         print(pages)
+        print (f"Product count :{x}")
+        x = x + 1
         # Extract company
         company_element = soup.find('p', class_='css-m5y22d eand5hi23')
         if company_element:
@@ -109,12 +126,19 @@ def fetch_product_details(productUrl):
             original_price = selling_price
 
         # Extract saved price
-        #saved_price_element = soup.find('p', class_='css-opziqa e1b0kgj0')
-        #if saved_price_element:
-        #    saved_price_text = saved_price_element.text.strip()
-        #    saved_price = float(saved_price_text[1:])
-        #else:
-        #    saved_price= 0
+        saved_price_element = soup.find('p', class_='css-opziqa e1b0kgj0')
+        if saved_price_element:
+            saved_price_text = saved_price_element.text.strip()
+            saved_price_start = saved_price_text.find('£') + 1  # Find the position of '£' and add 1 to get the start of the numeric value
+            saved_price_value = saved_price_text[saved_price_start:]
+            
+            try:
+                saved_price = float(saved_price_value)
+            except ValueError:
+                saved_price = 0.0  # Set a default value if conversion fails
+        else:
+            saved_price = 0.0
+
         # Extract color and sales status
         color = soup.find('span', class_='css-1jtzzxv ecsh60z7').text
 
@@ -149,7 +173,7 @@ def fetch_product_details(productUrl):
         Reviews.append(reviews)
         Selling_Price.append(selling_price)
         Original_Price.append(original_price)
-        #Saved_Price.append(saved_price)
+        Saved_Price.append(saved_price)
         Color.append(color)
         Sales_Status.append(sales_status)
         # Styles.append(styles)
@@ -239,6 +263,7 @@ data = {'Company': Company,
         'Reviews' : Reviews,
         'Selling Price': Selling_Price,
         'Orginal Price' : Original_Price,
+        'saved Price' : Saved_Price,
         'Sales Status' : Sales_Status,
         'Composition' : Composition
         }
