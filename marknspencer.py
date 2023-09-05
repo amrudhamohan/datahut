@@ -21,11 +21,6 @@ def extract_href_values(url, headers, max_retries=3):
             print("Retrying...")
     return None  # Return None if all retries fail
 
-#def extract_href_values(url, headers):
-    # Send a GET request to the URL with the headers
-    #response = requests.get(url, headers=headers, timeout=30)
-    #soup = BeautifulSoup(response.text, 'html.parser')
-    #return soup
 
 def extract_number_of_pages(soup):
     pagination_span = soup.find('span', class_='css-82gmvi e1ytuwls1')
@@ -35,13 +30,6 @@ def extract_number_of_pages(soup):
         if len(parts) == 2:
             return int(parts[1])
     return None
-
-# def generate_page_urls(base_url, num_pages):
-#     page_urls = []
-#     for page in range(1, num_pages + 1):
-#         page_url = f"{base_url}?page={page}"
-#         page_urls.append(page_url)
-#     return page_urls
 
 def extract_product_url(pageUrls):
     for pages in pageUrls:
@@ -54,118 +42,121 @@ def extract_product_url(pageUrls):
 
     return productUrl
 
-def fetch_product_details(productUrl):
-    x = 1
-    for pages in productUrl:
-        soup =  extract_href_values (pages, headers)
-        print(pages)
-        print (f"Product count :{x}")
-        x = x + 1
-        # Extract company
-        company_element = soup.find('p', class_='css-m5y22d eand5hi23')
+
+def extract_company(soup):
+    company_element = soup.find('p', class_='css-m5y22d eand5hi23')
+    if company_element:
+        return company_element.text.strip()
+    else:
+        company_element = soup.find('a', class_='eand5hi23 css-z0abg7 epzkrr00')
         if company_element:
-            company = company_element.text.strip()
+            return company_element.get_text()
         else:
-            company_element = soup.find('a', class_='eand5hi23 css-z0abg7 epzkrr00')
-            if company_element:
-                company = company_element.get_text()
-            else:
-                company = None
+            return None
 
-        # Extract product name
-        product_name = soup.find('h1', class_='css-vvorhm eand5hi26').text
-        # Extract product code
-        product_code = soup.find('p', class_='css-1jx4yjs e1b0kgj0').text
-        # Extract average rating
-        avg_rating_element = soup.find('div', class_='css-w44v8g e1tr9ty71')
-        avg_rating = float(avg_rating_element['aria-label'].split(':')[1].split(' out')[0])
-        # Extract reviews
-        review_element = soup.find('button', class_='e1kxsblz1 css-yvs3kk e2ucisq0')
-        if review_element:
-            reviews_text = review_element.get_text(strip=True)
+def extract_product_name(soup):
+    return soup.find('h1', class_='css-vvorhm eand5hi26').text
 
-        # Use regular expression to extract the numeric value
-            reviews_match = re.search(r'(\d+)', reviews_text)
-            if reviews_match:
-                reviews = int(reviews_match.group(1))
-            else:
-                reviews = None
-        else:
-            reviews = None
+def extract_product_code(soup):
+    product_code_element = soup.find('p', class_='css-1jx4yjs e1b0kgj0')
+    if product_code_element:
+        product_code_text = product_code_element.text
+    
+        # Extract the product code
+        product_code = product_code_text.split(': ')[-1]
+    return product_code
 
-        # Extracting price
+def extract_avg_rating(soup):
+    avg_rating_element = soup.find('div', class_='css-w44v8g e1tr9ty71')
+    avg_rating = float(avg_rating_element['aria-label'].split(':')[1].split(' out')[0])
+    return avg_rating
 
+def extract_reviews(soup):
+    review_element = soup.find('button', class_='e1kxsblz1 css-yvs3kk e2ucisq0')
+    if review_element:
+        reviews_text = review_element.get_text(strip=True)
+        reviews_match = re.search(r'(\d+)', reviews_text)
+        if reviews_match:
+            return int(reviews_match.group(1))
+    return None
 
-        # Extract selling price
-        # selling_price_element = soup.find('p', class_='css-1v802j0 e1b0kgj0')
-        # if selling_price_element:
-        #     selling_price_text = selling_price_element.text.strip()
-        #     selling_price = float(selling_price_text[1:])
-        # else:
-        #     selling_price = 0.0
-
-        # Check if "css-1v802j0 e1b0kgj0" class exists
-        selling_price_element_v802j0 = soup.find('p', class_='css-1v802j0 e1b0kgj0')
-        if selling_price_element_v802j0:
-            selling_price_text = selling_price_element_v802j0.text.strip()
+def extract_selling_price(soup):
+    # Check if "css-1v802j0 e1b0kgj0" class exists
+    selling_price_element_v802j0 = soup.find('p', class_='css-1v802j0 e1b0kgj0')
+    if selling_price_element_v802j0:
+        selling_price_text = selling_price_element_v802j0.text.strip()
+        selling_price = float(selling_price_text[1:])
+    else:
+        # Use "css-ktq1e4 e1b0kgj0" class as fallback
+        selling_price_element_ktq1e4 = soup.find('p', class_='css-ktq1e4 e1b0kgj0')
+        if selling_price_element_ktq1e4:
+            selling_price_text = selling_price_element_ktq1e4.text.strip()
             selling_price = float(selling_price_text[1:])
         else:
-            # Use "css-ktq1e4 e1b0kgj0" class as fallback
-            selling_price_element_ktq1e4 = soup.find('p', class_='css-ktq1e4 e1b0kgj0')
-            if selling_price_element_ktq1e4:
-                selling_price_text = selling_price_element_ktq1e4.text.strip()
-                selling_price = float(selling_price_text[1:])
-            else:
-                selling_price = 0
-        # Extract original price
-        original_price_element = soup.find('p', class_='css-1bb4dcr e1b0kgj0')
-        if original_price_element:
-            original_price_text = original_price_element.text.strip()
-            original_price = float(original_price_text[1:])
-        else:
-            original_price = selling_price
+            selling_price = 0
+    return selling_price
 
-        # Extract saved price
-        saved_price_element = soup.find('p', class_='css-opziqa e1b0kgj0')
-        if saved_price_element:
-            saved_price_text = saved_price_element.text.strip()
-            saved_price_start = saved_price_text.find('£') + 1  # Find the position of '£' and add 1 to get the start of the numeric value
-            saved_price_value = saved_price_text[saved_price_start:]
-            
-            try:
-                saved_price = float(saved_price_value)
-            except ValueError:
-                saved_price = 0.0  # Set a default value if conversion fails
-        else:
+def extract_original_price(soup):
+    original_price_element = soup.find('p', class_='css-1bb4dcr e1b0kgj0')
+    if original_price_element:
+        original_price_text = original_price_element.text.strip()
+        original_price = float(original_price_text[1:])
+    else:
+        # If original price is not found, use selling price as fallback
+        original_price = extract_selling_price(soup)
+    return original_price
+
+def extract_saved_price(soup):
+    saved_price_element = soup.find('p', class_='css-opziqa e1b0kgj0')
+    if saved_price_element:
+        saved_price_text = saved_price_element.text.strip()
+        saved_price_start = saved_price_text.find('£') + 1
+        saved_price_value = saved_price_text[saved_price_start:]
+        try:
+            saved_price = float(saved_price_value)
+        except ValueError:
             saved_price = 0.0
+    else:
+        saved_price = 0.0
+    return saved_price
 
-        # Extract color and sales status
-        color = soup.find('span', class_='css-1jtzzxv ecsh60z7').text
+def extract_color(soup):
+    return soup.find('span', class_='css-1jtzzxv ecsh60z7').text
 
-        # Sale status
-        sales_status_element = soup.find('span', class_='css-1jjg44c ecsh60z6')
-        if sales_status_element:
-            sales_status= sales_status_element.text.strip()
-        else:
-            sales_status = None
+def extract_sales_status(soup):
+    sales_status_element = soup.find('span', class_='css-1jjg44c ecsh60z6')
+    if sales_status_element:
+        return sales_status_element.text.strip()
+    return None
 
-        # Extract style details
-        # style_div = soup.find('div', class_='css-17obbps e2gxgh90')
-        # style_elements = style_div.find_all('p', class_='css-fger60 eohri892')
-        # styles = [element.text for element in style_elements]
-        # Extract composition
-        #composition = soup.find('div', class_='css-14hvavs eohri893').find('p', class_='css-z5zkuw e1b0kgj0').text
-        div_element = soup.find('div', class_='css-14hvavs eohri893')
-        if div_element:
-            p_element = div_element.find('p', class_='css-z5zkuw e1b0kgj0')
-            if p_element:
-                composition = p_element.text
-            else:
-                composition = "No composition found"
-        else:
-            composition = "No composition found"
+def extract_composition(soup):
+    div_element = soup.find('div', class_='css-14hvavs eohri893')
+    if div_element:
+        p_element = div_element.find('p', class_='css-z5zkuw e1b0kgj0')
+        if p_element:
+            return p_element.text
+    return "No composition found"
 
-       
+def fetch_product_details(productUrl):
+    x = 1
+    for page in productUrl:
+        soup = extract_href_values(page, headers)
+        print(page)
+        print(f"Product count :{x}")
+        x += 1
+        
+        company = extract_company(soup)
+        product_name = extract_product_name(soup)
+        product_code = extract_product_code(soup)
+        avg_rating = extract_avg_rating(soup)
+        reviews = extract_reviews(soup)
+        selling_price = extract_selling_price(soup)
+        original_price = extract_original_price(soup)
+        saved_price = extract_saved_price(soup)
+        color = extract_color(soup)
+        sales_status = extract_sales_status(soup)
+        composition = extract_composition(soup)
+        
         Company.append(company)
         Product_Name.append(product_name)
         Product_Code.append(product_code)
@@ -176,8 +167,8 @@ def fetch_product_details(productUrl):
         Saved_Price.append(saved_price)
         Color.append(color)
         Sales_Status.append(sales_status)
-        # Styles.append(styles)
         Composition.append(composition)
+
 
 # Define variables
 productUrl = []
@@ -220,20 +211,6 @@ headers = {
 # Extract href values from the first page
 soup = extract_href_values (mainUrl, headers)
 
-# # Extract href values from class "css-jeyzxy e8trdjq0"
-# href_elements = soup.find_all(class_="css-jeyzxy e8trdjq0")
-# href_values = [element.get('href') for element in href_elements]
-
-# # Extract the "number of pages" value from class "css-82gmvi e1ytuwls1"
-# number_of_pages_element = soup.find(class_="css-82gmvi e1ytuwls1")
-# number_of_pages_text = number_of_pages_element.get_text()
-# number_of_pages = int(number_of_pages_text.split()[-1])  # Extracting the number after "of"
-
-# # Generate and print href values for all numberOfPages
-# for page_number in range(1, number_of_pages + 1):
-#     href = f"/l/lingerie/nightwear?page={page_number}"
-#     print(href)
-
 
 # Extract the number of pages
 numberOfPages = extract_number_of_pages(soup)
@@ -256,15 +233,16 @@ print("Number of products:", len(productUrl))
 
 fetch_product_details (productUrl)
 
-data = {'Company': Company, 
+data = {'Brand': Company, 
         'Title': Product_Name, 
-        'Average rating': Avg_Rating, 
-        'Product Code' : Product_Code,
+        'Product_Url' : productUrl,
+        'Average_rating': Avg_Rating, 
+        'Product_Code' : Product_Code,
         'Reviews' : Reviews,
-        'Selling Price': Selling_Price,
-        'Orginal Price' : Original_Price,
-        'saved Price' : Saved_Price,
-        'Sales Status' : Sales_Status,
+        'Selling_Price': Selling_Price,
+        'Orginal_Price' : Original_Price,
+        'Discount' : Saved_Price,
+        'Sales_Status' : Sales_Status,
         'Composition' : Composition
         }
 
