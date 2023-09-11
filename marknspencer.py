@@ -93,7 +93,7 @@ def extract_selling_price(soup):
             selling_price_text = selling_price_element_ktq1e4.text.strip()
             selling_price = float(selling_price_text[1:])
         else:
-            selling_price = 0
+            selling_price = None
     return selling_price
 
 def extract_original_price(soup):
@@ -115,9 +115,9 @@ def extract_saved_price(soup):
         try:
             saved_price = float(saved_price_value)
         except ValueError:
-            saved_price = 0.0
+            saved_price = None
     else:
-        saved_price = 0.0
+        saved_price = None
     return saved_price
 
 def extract_color(soup):
