@@ -23,13 +23,18 @@ def extract_href_values(url, headers, max_retries=3):
 
 
 def extract_number_of_pages(soup):
-    pagination_span = soup.find('span', class_='css-82gmvi e1ytuwls1')
-    if pagination_span:
-        text = pagination_span.get_text()
-        parts = text.split(' of ')
-        if len(parts) == 2:
-            return int(parts[1])
+    try:
+        pagination_span = soup.find('span', class_='css-82gmvi e1ytuwls1')
+        if pagination_span:
+            text = pagination_span.get_text()
+            parts = text.split(' of ')
+            if len(parts) == 2:
+                return int(parts[1])
+    except Exception as e:
+        print(f"An error occurred while extracting the number of pages: {e}")
+    
     return None
+
 
 def extract_product_url(pageUrls):
     for pages in pageUrls:
@@ -44,15 +49,22 @@ def extract_product_url(pageUrls):
 
 
 def extract_company(soup):
-    company_element = soup.find('p', class_='css-m5y22d eand5hi23')
-    if company_element:
-        return company_element.text.strip()
-    else:
+    try:
+        company_element = soup.find('p', class_='css-m5y22d eand5hi23')
+        if company_element:
+            return company_element.text.strip()
+    except Exception as e:
+        print(f"An error occurred while extracting the company: {e}")
+    
+    try:
         company_element = soup.find('a', class_='eand5hi23 css-z0abg7 epzkrr00')
         if company_element:
             return company_element.get_text()
-        else:
-            return None
+    except Exception as e:
+        print(f"An error occurred while extracting the company: {e}")
+
+    return None
+
 
 def extract_product_name(soup):
     return soup.find('h1', class_='css-vvorhm eand5hi26').text
@@ -81,44 +93,64 @@ def extract_reviews(soup):
     return None
 
 def extract_selling_price(soup):
-    # Check if "css-1v802j0 e1b0kgj0" class exists
-    selling_price_element_v802j0 = soup.find('p', class_='css-1v802j0 e1b0kgj0')
-    if selling_price_element_v802j0:
-        selling_price_text = selling_price_element_v802j0.text.strip()
-        selling_price = float(selling_price_text[1:])
-    else:
+    try:
+        # Check if "css-1v802j0 e1b0kgj0" class exists
+        selling_price_element_v802j0 = soup.find('p', class_='css-1v802j0 e1b0kgj0')
+        if selling_price_element_v802j0:
+            selling_price_text = selling_price_element_v802j0.text.strip()
+            selling_price = float(selling_price_text[1:])
+            return selling_price
+    except Exception as e:
+        print(f"An error occurred while extracting selling price: {e}")
+
+    try:
         # Use "css-ktq1e4 e1b0kgj0" class as fallback
         selling_price_element_ktq1e4 = soup.find('p', class_='css-ktq1e4 e1b0kgj0')
         if selling_price_element_ktq1e4:
             selling_price_text = selling_price_element_ktq1e4.text.strip()
             selling_price = float(selling_price_text[1:])
-        else:
-            selling_price = None
-    return selling_price
+            return selling_price
+    except Exception as e:
+        print(f"An error occurred while extracting selling price: {e}")
+
+    return None
+
 
 def extract_original_price(soup):
-    original_price_element = soup.find('p', class_='css-1bb4dcr e1b0kgj0')
-    if original_price_element:
-        original_price_text = original_price_element.text.strip()
-        original_price = float(original_price_text[1:])
-    else:
-        # If original price is not found, use selling price as fallback
-        original_price = extract_selling_price(soup)
-    return original_price
+    try:
+        original_price_element = soup.find('p', class_='css-1bb4dcr e1b0kgj0')
+        if original_price_element:
+            original_price_text = original_price_element.text.strip()
+            original_price = float(original_price_text[1:])
+            return original_price
+    except Exception as e:
+        print(f"An error occurred while extracting original price: {e}")
+
+    # If original price is not found, use selling price as fallback
+    try:
+        selling_price = extract_selling_price(soup)
+        if selling_price is not None:
+            return selling_price
+    except Exception as e:
+        print(f"An error occurred while extracting original price (fallback): {e}")
+
+    return None
+
 
 def extract_saved_price(soup):
-    saved_price_element = soup.find('p', class_='css-opziqa e1b0kgj0')
-    if saved_price_element:
-        saved_price_text = saved_price_element.text.strip()
-        saved_price_start = saved_price_text.find('£') + 1
-        saved_price_value = saved_price_text[saved_price_start:]
-        try:
+    try:
+        saved_price_element = soup.find('p', class_='css-opziqa e1b0kgj0')
+        if saved_price_element:
+            saved_price_text = saved_price_element.text.strip()
+            saved_price_start = saved_price_text.find('£') + 1
+            saved_price_value = saved_price_text[saved_price_start:]
             saved_price = float(saved_price_value)
-        except ValueError:
-            saved_price = None
-    else:
-        saved_price = None
-    return saved_price
+            return saved_price
+    except Exception as e:
+        print(f"An error occurred while extracting and converting saved price: {e}")
+    
+    return None
+
 
 def extract_color(soup):
     return soup.find('span', class_='css-1jtzzxv ecsh60z7').text
