@@ -7,7 +7,7 @@ import re
 import os
 from requests.exceptions import RequestException
 
-
+# function to extract html and pass it using Beautiful soup
 def extract_href_values(url, headers, max_retries=3):
     for _ in range(max_retries):
         try:
@@ -21,7 +21,7 @@ def extract_href_values(url, headers, max_retries=3):
             print("Retrying...")
     return None  # Return None if all retries fail
 
-
+# Function to extract  the number of pages
 def extract_number_of_pages(soup):
     try:
         pagination_span = soup.find('span', class_='css-82gmvi e1ytuwls1')
@@ -35,7 +35,7 @@ def extract_number_of_pages(soup):
     
     return None
 
-
+# Function to scrape the product URL
 def extract_product_url(pageUrls):
     for pages in pageUrls:
         soup =  extract_href_values (pages, headers)
@@ -47,7 +47,7 @@ def extract_product_url(pageUrls):
 
     return productUrl
 
-
+# Function to scrape brand name
 def extract_company(soup):
     try:
         company_element = soup.find('p', class_='css-m5y22d eand5hi23')
@@ -65,24 +65,27 @@ def extract_company(soup):
 
     return None
 
-
+# Function to scrape product name
 def extract_product_name(soup):
     return soup.find('h1', class_='css-vvorhm eand5hi26').text
 
+# Function to scrape product code
 def extract_product_code(soup):
     product_code_element = soup.find('p', class_='css-1jx4yjs e1b0kgj0')
     if product_code_element:
         product_code_text = product_code_element.text
     
-        # Extract the product code
+        # Scrape the product code
         product_code = product_code_text.split(': ')[-1]
     return product_code
 
+# Function to scrape avg rating
 def extract_avg_rating(soup):
     avg_rating_element = soup.find('div', class_='css-w44v8g e1tr9ty71')
     avg_rating = float(avg_rating_element['aria-label'].split(':')[1].split(' out')[0])
     return avg_rating
 
+# Function to scrape reviews
 def extract_reviews(soup):
     review_element = soup.find('button', class_='e1kxsblz1 css-yvs3kk e2ucisq0')
     if review_element:
@@ -92,6 +95,7 @@ def extract_reviews(soup):
             return int(reviews_match.group(1))
     return None
 
+# Function to scrape selling price
 def extract_selling_price(soup):
     try:
         # Check if "css-1v802j0 e1b0kgj0" class exists
@@ -115,7 +119,7 @@ def extract_selling_price(soup):
 
     return None
 
-
+# Function to scrape Orginial price
 def extract_original_price(soup):
     try:
         original_price_element = soup.find('p', class_='css-1bb4dcr e1b0kgj0')
@@ -136,7 +140,7 @@ def extract_original_price(soup):
 
     return None
 
-
+# Function to scrape discount price
 def extract_saved_price(soup):
     try:
         saved_price_element = soup.find('p', class_='css-opziqa e1b0kgj0')
@@ -151,16 +155,18 @@ def extract_saved_price(soup):
     
     return None
 
-
+# Function to scrape product colour
 def extract_color(soup):
     return soup.find('span', class_='css-1jtzzxv ecsh60z7').text
 
+# Function to scrape status of the sale
 def extract_sales_status(soup):
     sales_status_element = soup.find('span', class_='css-1jjg44c ecsh60z6')
     if sales_status_element:
         return sales_status_element.text.strip()
     return None
 
+# Function to scrape product composition
 def extract_composition(soup):
     div_element = soup.find('div', class_='css-14hvavs eohri893')
     if div_element:
@@ -169,6 +175,7 @@ def extract_composition(soup):
             return p_element.text
     return "No composition found"
 
+# Scraping main function
 def fetch_product_details(productUrl):
     x = 1
     for page in productUrl:
@@ -202,31 +209,21 @@ def fetch_product_details(productUrl):
         Composition.append(composition)
 
 
-# Define variables
+################### List URL and header definition ###################
+# List Definition
 productUrl = []
 pageUrls = []
-# Extract company
 Company = []
-# Extract product name
 Product_Name = []
-# Extract product code
 Product_Code = []
-# Extract average rating
 Avg_Rating = []
-# Extract reviews
 Reviews = []
-# Extract selling price
 Selling_Price = []
-# Extract original price
 Original_Price = []
-# Extract saved price
 Saved_Price = []
-# Extract color and sales status
 Color = []
 Sales_Status = []
-# Extract style details
 Styles = []
-# Extract composition
 Composition = []
 
 # Define the URLs
@@ -240,15 +237,15 @@ headers = {
     'Accept-Encoding': 'gzip, deflate'
 }
 
-# Extract href values from the first page
-soup = extract_href_values (mainUrl, headers)
+################# Extraction of page and product URL's ########################
+soup = extract_href_values (mainUrl, headers) # function call
 
 
-# Extract the number of pages
-numberOfPages = extract_number_of_pages(soup)
+numberOfPages = extract_number_of_pages(soup) # function call
 if numberOfPages is not None:
     print(f"Number of Pages: {numberOfPages}")
 
+# Function to extract  Page URL's 
 href_elements = soup.find_all('a', class_='css-jeyzxy e8trdjq0')
 for page in range(1, numberOfPages + 1):
     href = href_elements[0]['href']
@@ -259,12 +256,17 @@ for page in range(1, numberOfPages + 1):
 
 
 # Exact product URL from each page
-productUrl = extract_product_url (pageUrls)
+productUrl = extract_product_url (pageUrls) # function call
 
 print("Number of products:", len(productUrl))
 
-fetch_product_details (productUrl)
 
+################# Scape product details ####################
+fetch_product_details (productUrl) # function call
+
+
+############## Print the data to CSV ######################
+# Update the name of the items
 data = {'Brand': Company, 
         'Title': Product_Name, 
         'Product_Url' : productUrl,
@@ -278,6 +280,7 @@ data = {'Brand': Company,
         'Composition' : Composition
         }
 
+# Make data frame
 df = pd.DataFrame(data)
 
 # Check if the file already exists
