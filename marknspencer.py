@@ -5,7 +5,7 @@ import re
 import os
 from requests.exceptions import RequestException
 """
-I have used below libraries for this extraction code.
+I have used below libraries for scraping, cleanup and exporting the data.
 requests, BeautifulSoup, pandas, regular expressions, os and exceptions
 
 """
