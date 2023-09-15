@@ -1,11 +1,30 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import gzip
-import zlib
 import re
 import os
 from requests.exceptions import RequestException
+"""
+I have used below libraries for this extraction code.
+requests, BeautifulSoup, pandas, regular expressions, os and exceptions
+
+"""
+
+# List to store each element
+productUrl = []
+pageUrls = []
+Company = []
+Product_Name = []
+Product_Code = []
+Avg_Rating = []
+Reviews = []
+Selling_Price = []
+Original_Price = []
+Saved_Price = []
+Color = []
+Sales_Status = []
+Styles = []
+Composition = []
 
 # function to extract html and pass it using Beautiful soup
 def extract_href_values(url, headers, max_retries=3):
@@ -36,7 +55,7 @@ def extract_number_of_pages(soup):
     return None
 
 # Function to scrape the product URL
-def extract_product_url(pageUrls):
+def extract_product_url(baseUrl, pageUrls, headers):
     for pages in pageUrls:
         soup =  extract_href_values (pages, headers)
         product = soup.find_all('a', class_='css-g65o95 eenyued10')
@@ -176,7 +195,7 @@ def extract_composition(soup):
     return "No composition found"
 
 # Scraping main function
-def fetch_product_details(productUrl):
+def fetch_product_details(productUrl, headers):
     x = 1
     for page in productUrl:
         soup = extract_href_values(page, headers)
@@ -208,90 +227,78 @@ def fetch_product_details(productUrl):
         Sales_Status.append(sales_status)
         Composition.append(composition)
 
+# Main function
+def main():
+    ################### URL and header definition ###################
 
-################### List URL and header definition ###################
-# List Definition
-productUrl = []
-pageUrls = []
-Company = []
-Product_Name = []
-Product_Code = []
-Avg_Rating = []
-Reviews = []
-Selling_Price = []
-Original_Price = []
-Saved_Price = []
-Color = []
-Sales_Status = []
-Styles = []
-Composition = []
+    # Define the URLs
+    baseUrl = 'https://www.marksandspencer.com'
+    mainUrl = baseUrl + '/l/lingerie/nightwear#intid=gnav_Lingerie_Nightwear_All-Nightwear'
 
-# Define the URLs
-baseUrl = 'https://www.marksandspencer.com'
-mainUrl = baseUrl + '/l/lingerie/nightwear#intid=gnav_Lingerie_Nightwear_All-Nightwear'
+    # Define the headers
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate'
+    }
 
-# Define the headers
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate'
-}
-
-################# Extraction of page and product URL's ########################
-soup = extract_href_values (mainUrl, headers) # function call
+    ################# Extraction of page and product URL's ########################
+    soup = extract_href_values (mainUrl, headers) # function call
 
 
-numberOfPages = extract_number_of_pages(soup) # function call
-if numberOfPages is not None:
-    print(f"Number of Pages: {numberOfPages}")
+    numberOfPages = extract_number_of_pages(soup) # function call
+    if numberOfPages is not None:
+        print(f"Number of Pages: {numberOfPages}")
 
-# Function to extract  Page URL's 
-href_elements = soup.find_all('a', class_='css-jeyzxy e8trdjq0')
-for page in range(1, numberOfPages + 1):
-    href = href_elements[0]['href']
-    page_number = href[-1]  # Get the last character of href
-    href = href[:-1]  # Remove the last character from href
-    page_url = f"{baseUrl}{href}{page}"
-    pageUrls.append(page_url)
-
-
-# Exact product URL from each page
-productUrl = extract_product_url (pageUrls) # function call
-
-print("Number of products:", len(productUrl))
+    # Function to extract  Page URL's 
+    href_elements = soup.find_all('a', class_='css-jeyzxy e8trdjq0')
+    for page in range(1, numberOfPages + 1):
+        href = href_elements[0]['href']
+        page_number = href[-1]  # Get the last character of href
+        href = href[:-1]  # Remove the last character from href
+        page_url = f"{baseUrl}{href}{page}"
+        pageUrls.append(page_url)
 
 
-################# Scape product details ####################
-fetch_product_details (productUrl) # function call
+    # Exact product URL from each page
+    productUrl = extract_product_url (baseUrl, pageUrls, headers) # function call
+
+    print("Number of products:", len(productUrl))
 
 
-############## Print the data to CSV ######################
-# Update the name of the items
-data = {'Brand': Company, 
-        'Title': Product_Name, 
-        'Product_Url' : productUrl,
-        'Average_rating': Avg_Rating, 
-        'Product_Code' : Product_Code,
-        'Reviews' : Reviews,
-        'Selling_Price': Selling_Price,
-        'Orginal_Price' : Original_Price,
-        'Discount' : Saved_Price,
-        'Sales_Status' : Sales_Status,
-        'Composition' : Composition
-        }
+    ################# Scape product details ####################
+    fetch_product_details (productUrl,headers) # function call
 
-# Make data frame
-df = pd.DataFrame(data)
 
-# Check if the file already exists
-if os.path.exists('mas.csv'):
-    # Replace the file if it already exists
-    df.to_csv('mas.csv', index=False, mode='w')
-else:
+    ############## Print the data to CSV ######################
+    # Update the name of the items
+    data = {'Brand': Company, 
+            'Title': Product_Name, 
+            'Product_Url' : productUrl,
+            'Average_rating': Avg_Rating, 
+            'Product_Code' : Product_Code,
+            'Reviews' : Reviews,
+            'Selling_Price': Selling_Price,
+            'Orginal_Price' : Original_Price,
+            'Discount' : Saved_Price,
+            'Sales_Status' : Sales_Status,
+            'Composition' : Composition
+            }
+
+    # Make data frame
+    df = pd.DataFrame(data)
+
+    # Check if the file already exists
+    if os.path.exists('mas.csv'):
+        # Replace the file if it already exists
+        df.to_csv('mas.csv', index=False, mode='w')
+    else:
+        # Export the DataFrame to an Excel file
     # Export the DataFrame to an Excel file
-# Export the DataFrame to an Excel file
-    df.to_csv('mas.csv', index=False)
+        df.to_csv('mas.csv', index=False)
 
-    
+# Run the main function if the script is executed directly
+if __name__ == "__main__":
+    main()  
  
 
