@@ -15,7 +15,7 @@ def extract_href_values(url, headers, max_retries=3):
     """
     For any URL request we are using this function to get the html response and parse it with beautiful soup
     Incase of any failure response because of connectivity issue or any other network issues it will do retry 3 times.
-    The function resturns the parsed soup data.
+    The function returns the parsed soup data.
 
     """
     for _ in range(max_retries):
@@ -269,7 +269,7 @@ def main():
     '''
     The code begins extracting the number of pages and the extract the next page URL from the main page.
     With this information it itrate through each page and extact all the product URL and store it in the list.
-    TO get the product details html is fetched for each product URL and parsed the output using beautiful soup.
+    To get the product details html is fetched for each product URL and parsed the output using beautiful soup.
     After extracting all the details the data is converted to dataframe and saved CSV using pandas
     '''
     ################### URL and header definition ###################
