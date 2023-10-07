@@ -5,7 +5,7 @@ import re
 import os
 from requests.exceptions import RequestException
 '''
-I have used below libraries for scraping, cleanup and exporting the data.
+I have used the below libraries for scraping, cleaning, and exporting the data.
 requests, BeautifulSoup, pandas, regular expressions, os and exceptions
 
 '''
@@ -13,8 +13,8 @@ requests, BeautifulSoup, pandas, regular expressions, os and exceptions
 # Function to extract HTML and pass it using BeautifulSoup
 def extract_href_values(url, headers, max_retries=3):
     """
-    For any URL request we are using this function to get the html response and parse it with beautiful soup
-    Incase of any failure response because of connectivity issue or any other network issues it will do retry 3 times.
+    For any URL request, we use this function to get the HTML response and parse it with a beautiful soup
+    In case of any failed response because of connectivity issues or any other network issues, it will retry 3 times.
     The function returns the parsed soup data.
 
     """
@@ -44,12 +44,12 @@ def extract_number_of_pages(soup):
             if len(parts) == 2:
                 return int(parts[1])
     except:
-        return "No pages avalible"
+        return "No pages available"
 
 # Function to scrape the product URL
 def extract_product_url(baseUrl, pageUrls, headers):
     """
-    Fuction itrates through each page URL and extract the product URL for each product.
+    The function iterates through each page URL and extract the product URL for each product.
     Returns all product URL's for the respective product
     """
     productUrl = []  # Initialize an empty list here
@@ -62,7 +62,7 @@ def extract_product_url(baseUrl, pageUrls, headers):
                 producturl = baseUrl + urlextension
                 productUrl.append(producturl)
         except:
-            productUrl = "Not avalible"
+            productUrl = "Not available"
 
     return productUrl
 
@@ -82,7 +82,7 @@ def extract_company(soup):
     except Exception as e:
         print(f"An error occurred while extracting the company: {e}")
 
-    return "Not avalible"
+    return "Not available"
 
 # Function to scrape product name
 def extract_product_name(soup):
@@ -91,7 +91,7 @@ def extract_product_name(soup):
         if product_name_element:
             return product_name_element.get_text()
     except:
-        return "Not avalible"
+        return "Not available"
 
 # Function to scrape product code
 def extract_product_code(soup):
@@ -103,7 +103,7 @@ def extract_product_code(soup):
             product_code = product_code_text.split(': ')[-1]
             return product_code
     except:
-        return "Not avalible"
+        return "Not available"
 
 # Function to scrape avg rating
 def extract_avg_rating(soup):
@@ -129,8 +129,8 @@ def extract_reviews(soup):
 # Function to scrape selling price
 def extract_selling_price(soup):
     """
-    Price is having '£' symbol in it, aftr extracting the text the code will strip of £.
-    Function returns float value 
+    The price has '£' symbol in it, after extracting the text the code will strip off £.
+    The function returns the float value 
     """
     try:
         # Check if "css-1l2oq8c ezee3i61" class exists
@@ -155,8 +155,8 @@ def extract_selling_price(soup):
 # Function to scrape original price
 def extract_original_price(soup):
     """
-    Price is having '£' symbol in it, aftr extracting the text the code will strip of £.
-    Function returns float value 
+    The price has '£' symbol in it, after extracting the text the code will strip off £.
+    The function returns the float value 
     """
     try:
         original_price_element = soup.find('p', class_='css-ydfpcm ezee3i61')
@@ -167,7 +167,7 @@ def extract_original_price(soup):
     except Exception as e:
         print(f"An error occurred while extracting original price: {e}")
 
-    # If original price is not found, use selling price as fallback
+    # If the original price is not found, use the selling price as a fallback
     try:
         selling_price = extract_selling_price(soup)
         if selling_price is not None:
@@ -178,8 +178,8 @@ def extract_original_price(soup):
 # Function to scrape discount price
 def extract_saved_price(soup):
     """
-    Price is having '£' symbol in it, aftr extracting the text the code will strip of £.
-    Function returns float value 
+    The price has '£' symbol in it, after extracting the text the code will strip off £.
+    The function returns the float value 
     """
     try:
         saved_price_element = soup.find('p', class_='css-opziqa e1b0kgj0')
@@ -197,7 +197,7 @@ def extract_color(soup):
     try:
         return soup.find('span', class_='css-1jtzzxv ecsh60z7').text
     except:
-        return "Not avalible"
+        return "Not available"
 
 # Function to scrape sales status
 def extract_sales_status(soup):
@@ -206,7 +206,7 @@ def extract_sales_status(soup):
         if sales_status_element:
             return sales_status_element.text.strip()
     except:
-        return "Not avalible"
+        return "Not available"
 
 # Function to scrape product composition
 def extract_composition(soup):
@@ -217,7 +217,7 @@ def extract_composition(soup):
             if p_element:
                 return p_element.text
     except:
-        return "Not avalible"
+        return "Not available"
 
 # Scraping main function
 def fetch_product_details(productUrls, headers):
@@ -267,10 +267,11 @@ def fetch_product_details(productUrls, headers):
 # Main function
 def main():
     '''
-    The code begins extracting the number of pages and the extract the next page URL from the main page.
-    With this information it itrate through each page and extact all the product URL and store it in the list.
-    To get the product details html is fetched for each product URL and parsed the output using beautiful soup.
-    After extracting all the details the data is converted to dataframe and saved CSV using pandas
+    The code starts by extracting the number of pages and the next page URL from the main page. 
+    Using this information, it iterates through each page, extracts all the product URLs, and stores them in a list.
+    To retrieve the product details, the HTML for each product URL is fetched, and the output is parsed using Beautiful Soup. 
+    After extracting all the details, the data is converted into a DataFrame and saved as a CSV using Pandas.
+
     '''
     ################### URL and header definition ###################
 
